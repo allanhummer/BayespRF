@@ -10,11 +10,11 @@
 % Settings
 
 % Directory of the downloaded example dataset
-data_root_dir = 'D:\samdata\';
-data_dir      = fullfile(data_root_dir,'example','pRF');
+data_root_dir = '/net/mri.meduniwien.ac.at/departments/physics/fmrilab/lab/BayespRF/example_3T/data/';
+data_dir      = fullfile(data_root_dir,'Example','pRF');
 
 % Directory of GLM
-glm_dir  = fullfile(pwd,'../GLM');
+glm_dir  = '/net/mri.meduniwien.ac.at/departments/physics/fmrilab/lab/BayespRF/example_3T/GLM';
 
 TR = 1;         % Repetition time
 TE = 0.055;     % Echo time
@@ -62,7 +62,14 @@ PRF = spm_prf_analyse('specify',SPM,xY,U,options);
 prf_file = fullfile(glm_dir,'PRF_SamSrf_example.mat');
 
 % Estimation options
-options  = struct('voxels',3439);
+%options  = struct('voxels',3439);
+%options  = struct('voxels',1:6669);
+options = ...
+    struct('init', 'GLM_P', ...     % Initialization. See below
+    'use_parfor', true, ... % Parallelization
+    'nograph', true, ...    % If true, disables plots
+    'voxels', 1:6669 ....       % Voxels indices (optional)
+    );
 
 % Estimate
 PRF_est = spm_prf_analyse('estimate',prf_file,options);

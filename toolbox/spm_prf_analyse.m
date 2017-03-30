@@ -436,14 +436,14 @@ else
         if ny > 1, fprintf('Voxel %d of %d\n', i, ny); end
 
         % Initialize priors
-        [pE{i},pC{i},P] = initialize_model(M,U,Y.y,i,est_options);
+        [pE{i},pC{i},P{i}] = initialize_model(M,U,Y.y,i,est_options);
 
         % Model updated with initialized priors
         M2 = M;
         M2.pE = pE{i};
         M2.pC = pC{i};
-        M2.P  = P;
-                
+        M2.P  = P{i};
+        
         % Fit
         [Ep{i},Cp{i},Eh(i),F(i)] = fit_model(M2,U,Y,i);                           
     end
