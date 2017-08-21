@@ -10,10 +10,9 @@ Advantages:
 
 Disadvantages:
 
-- Model estimation is computationally expensive (~100 seconds per voxel per CPU core)
-- Cortical surface projection is not yet implemented
+- Model estimation is computationally expensive (> 100 seconds per voxel per CPU core)
 
-*The toolbox is very new and still in development. So please enjoy using it, but treat results with caution. The corresponding paper is out in [Preprint](https://arxiv.org/abs/1612.00644) and will soon be going to peer review.*
+*The toolbox is very new and still in development. So please enjoy using it, but treat results with caution. The corresponding paper is out in [Preprint](https://arxiv.org/abs/1612.00644) and is undergoing peer review.*
 
 | Contents |
 | -------- |
@@ -40,7 +39,7 @@ A good way to get started is to try fitting a pRF model using an example dataset
 **Part 2: Running the pRF analysis**
 
 1. Edit the **example_3T/scripts/Run_pRF_analysis** script. Change the **data_root_dir** variable to match the location containing the example dataset.
-2. Run the Run_pRF_analysis script. A pRF model will be specified covering 6669 voxels. A single pRF will then be estimated (index 3439) and a window will be displayed with the results.
+2. Run the Run_pRF_analysis script. A pRF model will be specified covering 2422 voxels. A single pRF will then be estimated (index 1) and a window will be displayed with the results. You can stop the code there, or you can continue with estimating all voxels.
 
 A step-by-step walkthrough of the demo can be found below.
 
@@ -57,7 +56,11 @@ The toolbox provides a set of functions for specifying and analysing pRF models:
 | spm_prf_editor | A graphical editor for adjusting priors in pRF models |
 | spm_prf_find_voxel | Gets the index of a voxel within a pRF based on its mm coordinates |
 | spm_prf_get_ppd | Gets the prior and posterior predictive density for a pRF model |
+| spm_prf_import_label | Imports a Freesurfer label for use with this toolbox |
+| spm_prf_import_surface | Imports a Freesurfer surface for use with this toolbox |
+| spm_prf_plot_entropy | Plots the negative entropy (certainty) of the parameters |
 | spm_prf_review | Reviews the results of pRF estimation |
+| spm_prf_summarise | Plots the summed / average pRF response within an ROI |
 
 A pRF model is defined by a response function - for example, a Gaussian response or Difference of Gaussians (DoG) response. pRF models are provided in the **toolbox/response_functions** folder. The name of the function to use should be provided when specifying the pRF in **spm_prf_analyse**.
 
@@ -67,24 +70,38 @@ A pRF model is defined by a response function - for example, a Gaussian response
 
 | | Function | Description | Input coordinates |
 | --- | -------  | ----------- | ----------------- |
-| ![Gaussian](https://cloud.githubusercontent.com/assets/2145293/20843434/41822ca2-b8b3-11e6-8ccc-e473dffb648f.png) | spm_prf_fcn_gaussian_1sigma_DCP2 | Isotropic 2D Gaussian | Polar |
-| ![Ellipitical Gaussian](https://cloud.githubusercontent.com/assets/2145293/20843432/4181f37c-b8b3-11e6-8438-ee4346e23bea.png) | spm_prf_fcn_gaussian_1sigma_ellipse_DCP2 | Elliptical 2D Gaussian | Polar |
-| ![Rotated Gaussian](https://cloud.githubusercontent.com/assets/2145293/20843433/4181f872-b8b3-11e6-94e1-7175f5d44a27.png) | spm_prf_fcn_gaussian_1sigma_angled_DCP2 | Elliptical 2D Gaussian with rotation | Polar |
-| ![DoG](https://cloud.githubusercontent.com/assets/2145293/20843436/4182ab0a-b8b3-11e6-818a-94d2dfd45fe9.png) | spm_prf_fcn_gaussian_DoG_basic_DCP2 | Isotropic 2D DoG | Polar |
-| ![Ellipitical DoG](https://cloud.githubusercontent.com/assets/2145293/20843437/418757c2-b8b3-11e6-9975-9dba3c6284be.png) | spm_prf_fcn_gaussian_DoG_ellipse_DCP2 | Elliptical 2D DoG | Polar |
-| ![Rotated DoG](https://cloud.githubusercontent.com/assets/2145293/20843438/4192a348-b8b3-11e6-80ac-06745b46a49b.png) | spm_prf_fcn_gaussian_DoG_DCP2 | Elliptical 2D DoG with rotation | Polar |
+| ![Gaussian](https://cloud.githubusercontent.com/assets/2145293/20843434/41822ca2-b8b3-11e6-8ccc-e473dffb648f.png) | spm_prf_fcn_gaussian_polar | Isotropic 2D Gaussian | Polar |
+| ![Ellipitical Gaussian](https://cloud.githubusercontent.com/assets/2145293/20843432/4181f37c-b8b3-11e6-8438-ee4346e23bea.png) | spm_prf_fcn_gaussian_polar_ellipse | Elliptical 2D Gaussian | Polar |
+| ![Rotated Gaussian](https://cloud.githubusercontent.com/assets/2145293/20843433/4181f872-b8b3-11e6-94e1-7175f5d44a27.png) | spm_prf_fcn_gaussian_polar_angled | Elliptical 2D Gaussian with rotation | Polar |
+| ![DoG](https://cloud.githubusercontent.com/assets/2145293/20843436/4182ab0a-b8b3-11e6-818a-94d2dfd45fe9.png) | spm_prf_fcn_DoG_polar | Isotropic 2D DoG | Polar |
+| ![Ellipitical DoG](https://cloud.githubusercontent.com/assets/2145293/20843437/418757c2-b8b3-11e6-9975-9dba3c6284be.png) | spm_prf_fcn_DoG_polar_ellipse | Elliptical 2D DoG | Polar |
+| ![Rotated DoG](https://cloud.githubusercontent.com/assets/2145293/20843438/4192a348-b8b3-11e6-80ac-06745b46a49b.png) | spm_prf_fcn_DoG_polar_angled | Elliptical 2D DoG with rotation | Polar |
 
-The neurovascular signal model (**spm_prf_fx.m**) and the BOLD signal model (**spm_prf_gx.m**) do not need to be modified on a study-by-study basis.
+The neurovascular signal model (**spm_prf_fx.m**) and the BOLD signal model (**spm_prf_gx.m**) do not generally need to be modified on a study-by-study basis.
 
 [Top of page](#bayesprf-toolbox)
 
 ## Step by Step
 
-Here's a step by step guide to running a pRF analysis. We'll be working through the steps in the example script supplied with the toolbox (scripts/Run_pRF_analysis.m).
+Here's a step by step guide to running a pRF analysis. We'll be working through the steps in the example script supplied with the toolbox (**scripts/Run_first_level.m** and **scripts/Run_pRF_analysis.m**).
+
+**0. Prepare your files**
+If you'd like to use the example scripts without modification, you'll need to arrange your data into a folder (data_dir) containing:
+
+- data_dir\ubf*.nii     (Pre-processed fMRI images for one subject)
+- data_dir\T1.nii       (Structural MRI)
+- data_dir\aps_Bars.mat (Stimuli - a 3D Matlab matrix of size PxPxT for P pixels and T time points)
+
+If your own data has different filenames, that's fine - just go through and update **Run_first_level.m** with the correct filenames.
+
+If you wish to work with cortical surfaces, you'll need to run Freesurfer on your T1.nii image using the recon-all command. This will produce a folder called surf containing the extracted surfaces. Update the surf_dir variable in **Run_first_level.m** (line 8) to tell the script where to find these.
+
+After ensuring that all folder names are correct at the top of Run_first_level.m and Run_pRF_analysis.m, as well as the TR, TE and session numbers, proceed to step 1.
 
 **1. Prepare your inputs**
+You need to give BayespRF the timing of your experimental stimuli - in other words, which pixels of the stimuli were illuminated at which time points. An example script is provided **prepare_polar_inputs_samsrf.m** which reads in the 3D stimulus array (data_dir\Aps_bars.mat) and produces a structure in the correct format for BayesPrf. If you have a simple design with successive stimuli of equal length, you can simply update this script with the stimulus duration and stimulus diameter (lines 17-18).
 
-You need to give BayespRF the timing of your experimental stimuli - in other words, which pixels of the stimuli were illuminated at which time points. For the polar coordinates model used in this example, this will be a Matlab structure with the following fields:
+Alternatively, you may wish to customise the stimulus presentation details (i.e. create your own version of prepare_inputs_polar_samsrf.m). This script needs to produce a Matlab structure array with the following fields:
 
 ```Matlab
     U(t).dist  = dist;         % Distance
@@ -105,70 +122,25 @@ The U structure contains fields which describe the stimulus at time t:
 - **pmax** is the stimulus diameter in degrees of visual angle
 - **pmin** is the minimum entertained pRF size in degrees of visual angle
 
-**Note \#1:** You will find an example script for producing this U structure in **scripts/prepare_inputs_polar_samsrf.m** . This reads in the stimuli as a 3D matrix of stimuli, where the third dimension indexes time, and produces the U structure.  
+**Note:** The pRF models have been tested with the resolution of the stimuli downsampled to a [41 x 41] grid. We recommend you do the same with your stimuli. This is done for you in the example script.
 
-**Note \#2:** The pRF models have been tested with the resolution of the stimuli downsampled to a [41 x 41] grid. We recommend you do the same with your stimuli. This is done for you in the example script.
+**2. Extract timeseries**
 
-**2. Prepare your timeseries**
+Run the example script **Run_first_level.m**. This does a few things for you:
 
-Using SPM to extract timeseries for pRF analysis is the recommended method. When viewing a single subject's SPM result, click Eigenvariate in the small grey window and follow the prompts. This will create a file named VOI_xx.mat, containing a summary timeseries, as well as timeseries for every voxel in the ROI. Create a cell array containing the filenames for each session's VOI:
+1. Specifies and estimates a GLM to identify voxels which respond to visual stimuli
+2. Imports the Freesurfer cortical surfaces (created using the Freesurfer recon-all command) into Matlab / NIFTI format.
+3. Creates a mask of voxels which meet three criteria:
+   - Respond more strongly to visual stimuli than baseline periods
+   - Are on the cortical surface
+   - Are at the back of the brain (posterior to y=0mm)
+4. Extracts timeseries from these voxels using SPM. These are pre-processed automatically (removing the mean and motion confounds, high-pass filtering and pre-whitening).
 
-```Matlab
-xY = cell(1,num_sess);
-for i = 1:num_sess
-    filename = sprintf('VOI_Mask_%d.mat',sess(i));
-    xY{i}    = fullfile(glm_dir,filename);
-end
-```
+For an initial check that the scripts have worked, inspect the files **GLM\VOI_lh_prf_mask_mask.nii** and **GLM\VOI_rh_prf_mask_mask.nii**. These are the masks of included voxels from each hemisphere, which will be taken forward for PRF analysis.
 
-**3. Specify your pRF model**
+**3. Specify and estimate your pRF model for a single voxel**
 
-Armed with your experiment timings U and timeseries xY, you can now specify your pRF model. This consists of creating an options structure with various settings, and calling the **spm_prf_analyse** function in 'specify' mode:
-
-```Matlab
-% Set pRF specification options
-options = struct('TE', TE,...
-                 'voxel_wise', true,...
-                 'name', 'SamSrf_example',...
-                 'model', 'spm_prf_fcn_gaussian_1sigma_DCP2',...
-                 'B0',3);
-             
-% Specify pRF model (.mat file will be stored in the GLM directory)
-PRF = spm_prf_analyse('specify',SPM,xY,U,options);
-```
-For a full list of options, see the help in spm_prf_analyse. Here we have just set a few key options: 
-- **TE** is the echo time of the scanning sequence, and is used in the neurosvascular model. 
-- **voxel_wise** tells the model to work on a voxel-by-voxel basis, rather than using the summary (ROI) timeseries
-- **name** will be used for the PRF's filename
-- **model** is the pRF model to use. There are a few to choose from (in the response_functions folder). Here we're using a circular pRF with polar coordinates
-- **B0** is the strength of the scanner's magnetic field in teslas. This influences several priors in the observation model.
-
-This will create a file called PRF_name.mat in the same folder as the SPM.mat for this subject.
-
-**4. Estimate the pRF model**
-
-The evidence (free energy) and parameters of the model will now be estimated. For this example, we will only estimated one voxel:
-
-```Matlab
-% Estimation options
-options  = struct('voxels',3439);
-
-% Estimate
-PRF_est = spm_prf_analyse('estimate',prf_file,options);
-```
-
-For a full set of estimation options, including the use of parallel computing, see the help in the **spm_prf_analyse** function.
-
-**5. Review the results**
-
-To review a pRF model's results, use the spm_prf_review function:
-
-```Matlab
-prf_file = fullfile(glm_dir,'PRF_SamSrf_example.mat');
-
-spm_prf_review(prf_file, 3439);
-```
-Here we ask it to review only the voxel we have estimated (3439). (If we don't give this parameter, and if the pRF file contains multiple voxels, then spm_prf_review will attempt to build a parameteric map of the voxels across the brain.) You should see a window like the following:
+Run the example script **Run_prf_analysis.m** up to line 75. This specifies the pRF model by calling the **spm_prf_analyse** function in 'specify' mode. It then estimates the evidence (free energy) and parameters of the model for a single voxel. To review the pRF model's results, the script calls the **spm_prf_review** function. In the window which appears, check the estimation looks sensible.
 
 ![pRF review window](https://cloud.githubusercontent.com/assets/2145293/20844452/c519ef06-b8b7-11e6-85c9-cd12d8459077.png)
 
@@ -189,6 +161,12 @@ Let's go through each part of the figure:
 For simplicity, you may wish to use the Prior PD and Posterior PD to illustrate the model's parameters in a paper, together with the explained variance, in order to confirm that an interesting amount of variance has been explained. Note that the explained variance must not be used to compare models, as it does not take into account the model's complexity.
 
 [Top of page](#bayesprf-toolbox)
+
+**4. Run the model estimation for the whole brain**
+Having established everything is working, run the next section of the example script (**Run_prf_analysis.m**, lines 76-88). This will estimate all voxels (using parallel processing if available). The whole-brain results will then be displayed.
+
+**5. Perform an ROI analysis**
+At this stage, you may wish to manually label regions of interest (e.g. V1) and summarise the pRFs within the region. In the example dataset, labels are provided for all the visual fields. To plot the summed pRF in left V1, run the next section of the script (lines 96-104).
 
 ## Developing neuronal response functions
 
