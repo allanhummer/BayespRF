@@ -449,7 +449,7 @@ else
         M2.pE = pE{i};
         M2.pC = pC{i};
         M2.P  = P{i};
-                
+
         % Fit
         [Ep{i},Cp{i},Eh(i),F(i)] = fit_model(M2,U,Y,i);                           
     end

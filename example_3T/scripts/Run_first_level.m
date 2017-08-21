@@ -3,12 +3,12 @@
 % Settings
 
 % Directory into which to download example dataset
-data_root_dir = 'D:\samdata\';
-data_dir      = fullfile(data_root_dir,'example','pRF');
-surf_dir      = fullfile(data_root_dir,'example','surf');
+data_root_dir = '/z/fmrilab/lab/BayespRF/example_3T/data';
+data_dir      = fullfile(data_root_dir,'Example','pRF');
+surf_dir      = fullfile(data_root_dir,'Example','surf');
 
 % Directory for creating GLM
-glm_dir  = fullfile(pwd,'../GLM');
+glm_dir  = fullfile('/z/fmrilab/lab/BayespRF/example_3T/GLM');
 
 % Number of sessions
 nsess = 10;
@@ -21,12 +21,12 @@ if ~exist(data_root_dir,'file')
 end
 
 % Download
-fn = fullfile(data_root_dir,'Example.zip');
-fprintf('%-40s:', 'Downloading SamSrf dataset...');
-urlwrite('https://zenodo.org/record/163582/files/Example.zip',fn);
+%fn = fullfile(data_root_dir,'Example.zip');
+%fprintf('%-40s:', 'Downloading SamSrf dataset...');
+%urlwrite('https://zenodo.org/record/163582/files/Example.zip',fn);
 
 % Unzip
-unzip(fn, data_root_dir);
+%unzip(fn, data_root_dir);
 
 fprintf(' %30s\n', '...done');
 %% Prepare onsets
@@ -134,7 +134,9 @@ matlabbatch{1}.spm.stats.results.conspec.extent = 0;
 matlabbatch{1}.spm.stats.results.conspec.conjunction = 1;
 matlabbatch{1}.spm.stats.results.conspec.mask.none = 1;
 matlabbatch{1}.spm.stats.results.units = 1;
-matlabbatch{1}.spm.stats.results.export{1}.binary.basename = 'mask_uncorrected';
+%matlabbatch{1}.spm.stats.results.export{1}.binary.basename = 'mask_uncorrected';
+matlabbatch{1}.spm.stats.results.write.tspm.basename = 'mask_uncorrected';
+%spm_jobman('interactive',matlabbatch);
 spm_jobman('run',matlabbatch);
 %% Remove voxels from the mask anterior to y = 0
 cd(glm_dir);
